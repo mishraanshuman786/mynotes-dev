@@ -1,0 +1,262 @@
+---
+title: "React Hooks: A Complete Guide"
+description: "Master React Hooks with practical examples - useState, useEffect, useContext, and custom hooks explained."
+date: "2024-02-10"
+category: "react"
+tags: ["react", "hooks", "useState", "useEffect", "frontend"]
+slug: "react-hooks-guide"
+author: "Your Name"
+published: true
+---
+
+# React Hooks: A Complete Guide
+
+React Hooks revolutionized how we write React components. Introduced in React 16.8, hooks allow you to use state and other React features in functional components.
+
+## Why Hooks?
+
+Before hooks, you needed class components to use state or lifecycle methods. Hooks provide:
+
+- **Simpler code**: No more `this` binding issues
+- **Reusable logic**: Custom hooks for sharing stateful logic
+- **Better organization**: Group related code together
+
+## useState: Managing State
+
+The most fundamental hook for adding state to functional components:
+
+```jsx
+import { useState } from 'react';
+
+function Counter() {
+  const [count, setCount] = useState(0);
+
+  return (
+    <div>
+      <p>Count: {count}</p>
+      <button onClick={() => setCount(count + 1)}>
+        Increment
+      </button>
+      <button onClick={() => setCount(prev => prev - 1)}>
+        Decrement
+      </button>
+    </div>
+  );
+}
+```
+
+### State with Objects
+
+```jsx
+function UserForm() {
+  const [user, setUser] = useState({
+    name: '',
+    email: '',
+    age: 0
+  });
+
+  const updateField = (field, value) => {
+    setUser(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  return (
+    <form>
+      <input
+        value={user.name}
+        onChange={e => updateField('name', e.target.value)}
+        placeholder="Name"
+      />
+      <input
+        value={user.email}
+        onChange={e => updateField('email', e.target.value)}
+        placeholder="Email"
+      />
+    </form>
+  );
+}
+```
+
+## useEffect: Side Effects
+
+Handle side effects like data fetching, subscriptions, and DOM manipulation:
+
+```jsx
+import { useState, useEffect } from 'react';
+
+function UserProfile({ userId }) {
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchUser() {
+      setLoading(true);
+      try {
+        const response = await fetch(`/api/users/${userId}`);
+        const data = await response.json();
+        setUser(data);
+      } catch (error) {
+        console.error('Failed to fetch user:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchUser();
+  }, [userId]); // Re-run when userId changes
+
+  if (loading) return <div>Loading...</div>;
+  if (!user) return <div>User not found</div>;
+
+  return (
+    <div>
+      <h1>{user.name}</h1>
+      <p>{user.email}</p>
+    </div>
+  );
+}
+```
+
+### Cleanup Function
+
+```jsx
+useEffect(() => {
+  const handleResize = () => {
+    console.log('Window resized');
+  };
+
+  window.addEventListener('resize', handleResize);
+
+  // Cleanup function - runs before component unmounts
+  return () => {
+    window.removeEventListener('resize', handleResize);
+  };
+}, []);
+```
+
+## useContext: Sharing State
+
+Share state across components without prop drilling:
+
+```jsx
+import { createContext, useContext, useState } from 'react';
+
+// Create context
+const ThemeContext = createContext();
+
+// Provider component
+function ThemeProvider({ children }) {
+  const [theme, setTheme] = useState('light');
+
+  const toggleTheme = () => {
+    setTheme(prev => prev === 'light' ? 'dark' : 'light');
+  };
+
+  return (
+    <ThemeContext.Provider value={{ theme, toggleTheme }}>
+      {children}
+    </ThemeContext.Provider>
+  );
+}
+
+// Consumer component
+function ThemedButton() {
+  const { theme, toggleTheme } = useContext(ThemeContext);
+
+  return (
+    <button
+      onClick={toggleTheme}
+      style={{
+        background: theme === 'light' ? '#fff' : '#333',
+        color: theme === 'light' ? '#333' : '#fff'
+      }}
+    >
+      Toggle Theme
+    </button>
+  );
+}
+```
+
+## Custom Hooks
+
+Create reusable hooks for common patterns:
+
+```jsx
+// useLocalStorage hook
+function useLocalStorage(key, initialValue) {
+  const [storedValue, setStoredValue] = useState(() => {
+    try {
+      const item = window.localStorage.getItem(key);
+      return item ? JSON.parse(item) : initialValue;
+    } catch (error) {
+      return initialValue;
+    }
+  });
+
+  const setValue = (value) => {
+    try {
+      const valueToStore = value instanceof Function 
+        ? value(storedValue) 
+        : value;
+      setStoredValue(valueToStore);
+      window.localStorage.setItem(key, JSON.stringify(valueToStore));
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  return [storedValue, setValue];
+}
+
+// Usage
+function App() {
+  const [name, setName] = useLocalStorage('name', 'Guest');
+
+  return (
+    <input
+      value={name}
+      onChange={e => setName(e.target.value)}
+    />
+  );
+}
+```
+
+## Rules of Hooks
+
+1. **Only call hooks at the top level** - not inside loops, conditions, or nested functions
+2. **Only call hooks from React functions** - functional components or custom hooks
+
+```jsx
+// ❌ Wrong
+function Component({ isLoggedIn }) {
+  if (isLoggedIn) {
+    const [user, setUser] = useState(null); // Don't do this!
+  }
+}
+
+// ✅ Correct
+function Component({ isLoggedIn }) {
+  const [user, setUser] = useState(null);
+  
+  if (!isLoggedIn) {
+    return <Login />;
+  }
+  
+  return <Dashboard user={user} />;
+}
+```
+
+## Summary
+
+| Hook | Purpose |
+|------|---------|
+| `useState` | Add state to functional components |
+| `useEffect` | Handle side effects |
+| `useContext` | Access context values |
+| `useRef` | Persist values across renders |
+| `useMemo` | Memoize expensive calculations |
+| `useCallback` | Memoize functions |
+
+Hooks make React development more intuitive and help you write cleaner, more maintainable code!
