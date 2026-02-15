@@ -1,7 +1,7 @@
 // components/blog/ConfirmSaveBlog.tsx
 "use client";
 
-import { useState,useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Modal } from "@/components/ui/Modal";
 import { createBlogSchema } from "@/lib/schemas/blog";
 import { getBlogCategories } from "@/app/actions/blogCategory";
@@ -13,63 +13,63 @@ type Props = {
     title: string;
     slug: string;
     category_id: string | null;
+    tags?: string[];
   }) => void;
 };
 
-export function ConfirmSaveBlog({
-  open,
-  onClose,
-  onConfirm,
-}: Props) {
+export function ConfirmSaveBlog({ open, onClose, onConfirm }: Props) {
+  type Category = {
+    id: string;
+    name: string;
+    slug: string;
+  };
 
-    type Category={
-     id:string;
-     name:string;
-     slug:string;
-  }
+  const [categories, setCategories] = useState<Category[]>([]);
 
-    const [categories,setCategories]=useState<Category[]>([]);
-
-    // state for setting the confirm form
+  // state for setting the confirm form
   const [meta, setMeta] = useState({
     title: "",
     slug: "",
     category_id: null as string | null,
+    tags: "",
   });
 
-  
-
-  useEffect(()=>{
-    async function fetchBlogCategory(){
-        const categoryList=await getBlogCategories();
-        setCategories(categoryList);
+  useEffect(() => {
+    async function fetchBlogCategory() {
+      const categoryList = await getBlogCategories();
+      setCategories(categoryList);
     }
 
     fetchBlogCategory();
-  },[]);
+  }, []);
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   function submit() {
     const parsed = createBlogSchema
-      .pick({ title: true, slug: true, category_id: true })
-      .safeParse(meta);
+      .pick({ title: true, slug: true, category_id: true, tags: true })
+      .safeParse({
+        ...meta,
+        tags: meta.tags
+          ? meta.tags.split(",").map((text) => text.trim().toLowerCase())
+          : undefined,
+      });
 
     if (!parsed.success) {
       const fieldErrors = parsed.error.flatten().fieldErrors;
       setErrors({
         title: fieldErrors.title?.[0] ?? "",
         slug: fieldErrors.slug?.[0] ?? "",
+        tags: fieldErrors.tags?.[0] ?? "",
       });
       return;
     }
 
     setErrors({});
     onConfirm({
-  ...parsed.data,
-  category_id: parsed.data.category_id ?? null,
-});
-
+      ...parsed.data,
+      category_id: parsed.data.category_id ?? null,
+    });
   }
 
   return (
@@ -84,25 +84,17 @@ export function ConfirmSaveBlog({
         className="w-full border p-2 rounded border-gray-500 text-gray-600 mb-2"
         placeholder="Title"
         value={meta.title}
-        onChange={(e) =>
-          setMeta({ ...meta, title: e.target.value })
-        }
+        onChange={(e) => setMeta({ ...meta, title: e.target.value })}
       />
-      {errors.title && (
-        <p className="text-red-500 text-sm">{errors.title}</p>
-      )}
+      {errors.title && <p className="text-red-500 text-sm">{errors.title}</p>}
 
       <input
         className="w-full border border-gray-500 p-2 rounded text-gray-600 mb-2"
         placeholder="slug-like-this"
         value={meta.slug}
-        onChange={(e) =>
-          setMeta({ ...meta, slug: e.target.value })
-        }
+        onChange={(e) => setMeta({ ...meta, slug: e.target.value })}
       />
-      {errors.slug && (
-        <p className="text-red-500 text-sm">{errors.slug}</p>
-      )}
+      {errors.slug && <p className="text-red-500 text-sm">{errors.slug}</p>}
 
       <select
         className="w-full border p-2 rounded border-gray-500 text-gray-600"
@@ -115,14 +107,21 @@ export function ConfirmSaveBlog({
       >
         <option value="">Select category</option>
 
-        {
-            categories.map((cat)=>(
-                <option key={cat.id} value={cat.id}>
-                    {cat.name}
-                </option>
-            ))
-        }
+        {categories.map((cat) => (
+          <option key={cat.id} value={cat.id}>
+            {cat.name}
+          </option>
+        ))}
       </select>
+
+      <input
+        className="w-full border border-gray-500 p-2 rounded text-gray-600 mt-2"
+        placeholder="tags (comma separated)"
+        value={meta.tags}
+        onChange={(e) => setMeta({ ...meta, tags: e.target.value })}
+      />
+
+      {errors.tags && <p className="text-red-500 text-sm">{errors.tags}</p>}
     </Modal>
   );
 }

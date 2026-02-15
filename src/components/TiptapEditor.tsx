@@ -3,13 +3,28 @@
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import { FaSave } from "react-icons/fa";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { saveBlog } from "@/app/actions/blog";
 import { ConfirmSaveBlog } from "./blog/ConfirmSaveBlog";
+import { JSONContent } from "@tiptap/react";
 
 const TiptapEditor = () => {
-  const [htmlContent, setHtmlContent] = useState("<p>Hello World! 🌎</p>");
-  const [jsonContent, setJsonContent]= useState({});
+  const defaultJsonContent:JSONContent = {
+  type: "doc",
+  content: [
+    {
+      type: "paragraph",
+      content: [
+        {
+          type: "text",
+          text: "Log Your Thought! 🌎"
+        }
+      ]
+    }
+  ]
+};
+  const [htmlContent, setHtmlContent] = useState("<p>Log Your Thought! 🌎</p>");
+  const [jsonContent, setJsonContent]= useState<JSONContent>(defaultJsonContent);
   const [showPreview, setShowPreview] = useState(false);
 
   const editor = useEditor({
@@ -28,17 +43,19 @@ const TiptapEditor = () => {
 
 
   // state to submit the cofirm box
-  async function handleConfirm(meta: {
-    title: string;
-    slug: string;
-    category_id: string | null;
-  }) {
+ async function handleConfirm(meta: {
+  title: string;
+  slug: string;
+  category_id: string | null;
+  tags?: string[];
+}) {
     await saveBlog({
       ...meta,
       content_json: jsonContent,
       content_html: htmlContent,
-      status: "draft",
     });
+
+    console.log(meta);
 
     setOpen(false);
   }

@@ -28,8 +28,12 @@ export async function getBlogCategories(){
     const {data,error}=await supabase.from("categories").select("id, name, slug").order("name",{ascending:true});
 
     if(error){
-         throw new Error(error.message);
+    console.error("Error fetching categories:", error.message);
+    throw new Error("Failed to fetch categories");
     }
+    
 
-    return data;
+    return data ?? [];
 }
+
+// 

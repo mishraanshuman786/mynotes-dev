@@ -32,7 +32,8 @@ export function SearchBar({
 
     const newUrl = params.toString() ? `${pathname}?${params.toString()}` : pathname;
     router.push(newUrl, { scroll: false });
-  }, [debouncedQuery, pathname, router, searchParams]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debouncedQuery, pathname]);
 
   const handleClear = useCallback(() => {
     setQuery('');
