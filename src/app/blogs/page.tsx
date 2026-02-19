@@ -4,6 +4,7 @@ import { CategoryBadge } from "@/components/CategoryBadge";
 import { SearchBar } from "@/components/SearchBar";
 import { getBlogs } from "../actions/blog";
 import { getBlogCategories } from "../actions/blogCategory";
+import { Suspense } from "react";
 
 export default async function BlogsPage() {
   const blogs = await getBlogs();
@@ -31,7 +32,9 @@ export default async function BlogsPage() {
       </div>
 
       <div className="mb-8">
-        <SearchBar placeholder="Search blogs..." />
+      <Suspense fallback={<div>Loading search...</div>}>
+    <SearchBar placeholder="Search blogs..." />
+  </Suspense>
       </div>
 
       <div className="flex flex-col lg:flex-row gap-8">
