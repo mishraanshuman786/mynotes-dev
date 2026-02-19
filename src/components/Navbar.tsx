@@ -8,9 +8,8 @@ import { useState } from 'react';
 const navLinks = [
   { href: '/', label: 'Home' },
   { href: '/blogs', label: 'Blogs' },
-  { href: '/blogs/category/javascript', label: 'JavaScript' },
-  { href: '/blogs/category/react', label: 'React' },
-  { href: '/blogs/category/nextjs', label: 'Next.js' },
+  { href: '/blogs/category', label: 'Category' },
+ 
 ];
 
 export function Navbar() {
